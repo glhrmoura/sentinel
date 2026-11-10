@@ -13,69 +13,77 @@ func gradient(_ colors: [CGColor], _ locations: [CGFloat]) -> CGGradient {
     CGGradient(colorsSpace: CGColorSpace(name: CGColorSpace.sRGB), colors: colors as CFArray, locations: locations)!
 }
 
-func lidPoint(_ p0: CGPoint, _ control: CGPoint, _ p1: CGPoint, _ t: CGFloat) -> (point: CGPoint, normal: CGVector) {
-    let u = 1 - t
-    let point = CGPoint(
-        x: u * u * p0.x + 2 * u * t * control.x + t * t * p1.x,
-        y: u * u * p0.y + 2 * u * t * control.y + t * t * p1.y
-    )
-    let tangent = CGVector(
-        dx: 2 * u * (control.x - p0.x) + 2 * t * (p1.x - control.x),
-        dy: 2 * u * (control.y - p0.y) + 2 * t * (p1.y - control.y)
-    )
-    let length = sqrt(tangent.dx * tangent.dx + tangent.dy * tangent.dy)
-    var normal = CGVector(dx: -tangent.dy / length, dy: tangent.dx / length)
-    if normal.dy < 0 {
-        normal = CGVector(dx: -normal.dx, dy: -normal.dy)
+func helmetPath() -> CGPath {
+    let path = CGMutablePath()
+    path.move(to: CGPoint(x: 268, y: 540))
+    path.addCurve(to: CGPoint(x: 512, y: 850), control1: CGPoint(x: 268, y: 760), control2: CGPoint(x: 380, y: 850))
+    path.addCurve(to: CGPoint(x: 756, y: 540), control1: CGPoint(x: 644, y: 850), control2: CGPoint(x: 756, y: 760))
+    path.addLine(to: CGPoint(x: 720, y: 330))
+    path.addLine(to: CGPoint(x: 620, y: 190))
+    path.addLine(to: CGPoint(x: 404, y: 190))
+    path.addLine(to: CGPoint(x: 304, y: 330))
+    path.closeSubpath()
+    return path
+}
+
+func facePath() -> CGPath {
+    let path = CGMutablePath()
+    path.move(to: CGPoint(x: 344, y: 600))
+    path.addLine(to: CGPoint(x: 680, y: 600))
+    path.addLine(to: CGPoint(x: 652, y: 340))
+    path.addLine(to: CGPoint(x: 584, y: 236))
+    path.addLine(to: CGPoint(x: 440, y: 236))
+    path.addLine(to: CGPoint(x: 372, y: 340))
+    path.closeSubpath()
+    return path
+}
+
+func eyeSlit(mirrored: Bool) -> CGPath {
+    let path = CGMutablePath()
+    path.move(to: CGPoint(x: 388, y: 538))
+    path.addLine(to: CGPoint(x: 488, y: 512))
+    path.addLine(to: CGPoint(x: 488, y: 466))
+    path.addLine(to: CGPoint(x: 398, y: 486))
+    path.closeSubpath()
+    if mirrored {
+        var flip = CGAffineTransform(translationX: 1024, y: 0).scaledBy(x: -1, y: 1)
+        return path.copy(using: &flip)!
     }
-    return (point, normal)
+    return path
 }
 
 func drawMark(in context: CGContext) {
-    let tilePath = CGPath(roundedRect: CGRect(x: 0, y: 0, width: 1024, height: 1024), cornerWidth: 230, cornerHeight: 230, transform: nil)
+    let canvas = CGRect(x: 0, y: 0, width: 1024, height: 1024)
+    let tilePath = CGPath(roundedRect: canvas, cornerWidth: 230, cornerHeight: 230, transform: nil)
     context.saveGState()
     context.addPath(tilePath)
     context.clip()
     context.drawLinearGradient(
-        gradient([color(0x292524), color(0x0C0A09)], [0, 1]),
+        gradient([color(0x1A1A1A), color(0x000000)], [0, 1]),
         start: CGPoint(x: 512, y: 1024),
         end: CGPoint(x: 512, y: 0),
         options: []
     )
     context.restoreGState()
 
-    let p0 = CGPoint(x: 222, y: 460)
-    let control = CGPoint(x: 512, y: 760)
-    let p1 = CGPoint(x: 802, y: 460)
-    let stroke: CGFloat = 50
-
-    context.setLineCap(.round)
     context.setLineJoin(.round)
-    context.setStrokeColor(color(0xF5F5F4))
+    context.setLineCap(.round)
 
-    let lid = CGMutablePath()
-    lid.move(to: p0)
-    lid.addQuadCurve(to: p1, control: control)
-    context.addPath(lid)
-    context.setLineWidth(stroke)
-    context.strokePath()
-
-    for index in 0..<5 {
-        let t = 0.5 + (CGFloat(index) - 2) * 0.17
-        let (point, normal) = lidPoint(p0, control, p1, t)
-        let lash = CGMutablePath()
-        lash.move(to: CGPoint(x: point.x + normal.dx * 10, y: point.y + normal.dy * 10))
-        lash.addLine(to: CGPoint(x: point.x + normal.dx * 110, y: point.y + normal.dy * 110))
-        context.addPath(lash)
-        context.setLineWidth(stroke * 0.85)
-        context.strokePath()
-    }
-
-    let center = CGPoint(x: 512, y: 430)
-    let radius: CGFloat = 104
-    context.addEllipse(in: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
-    context.setFillColor(color(0xFBBF24))
+    let helmet = helmetPath()
+    context.addPath(helmet)
+    context.setFillColor(color(0xF5F5F4))
     context.fillPath()
+
+    let face = facePath()
+    context.addPath(face)
+    context.setFillColor(color(0x000000))
+    context.fillPath()
+
+    for mirrored in [false, true] {
+        context.addPath(eyeSlit(mirrored: mirrored))
+        context.setFillColor(color(0xFBBF24))
+        context.fillPath()
+    }
 }
 
 func draw(in context: CGContext) {
@@ -128,7 +136,7 @@ let outputDirectory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory
 try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
 
 if CommandLine.arguments.count > 2 {
-    try render(pixels: 240, full: true).write(to: URL(fileURLWithPath: CommandLine.arguments[2]))
+    try render(pixels: 1920, full: true).write(to: URL(fileURLWithPath: CommandLine.arguments[2]))
 }
 
 for base in [16, 32, 128, 256, 512] {
