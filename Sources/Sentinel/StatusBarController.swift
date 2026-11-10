@@ -53,7 +53,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     private func render(active: Bool) {
-        let image = NSImage(systemSymbolName: active ? "eye" : "eye.slash", accessibilityDescription: "Sentinel")
+        let image = NSImage(systemSymbolName: active ? "eye.fill" : "eye.slash", accessibilityDescription: "Sentinel")
         image?.isTemplate = true
         statusItem.button?.image = image
         primaryItem.title = active ? "Deixar o Mac dormir" : "Manter acordado"
