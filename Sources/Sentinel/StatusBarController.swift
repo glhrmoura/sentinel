@@ -53,7 +53,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     private func render(active: Bool) {
-        let image = NSImage(systemSymbolName: active ? "eye" : "eye.slash", accessibilityDescription: "Vigilant")
+        let image = NSImage(systemSymbolName: active ? "eye" : "eye.slash", accessibilityDescription: "Sentinel")
         image?.isTemplate = true
         statusItem.button?.image = image
         primaryItem.title = active ? "Deixar o Mac dormir" : "Manter acordado"
@@ -94,7 +94,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         menu.addItem(.separator())
         menu.addItem(action("Ajustes") { [openSettings] in openSettings() })
-        menu.addItem(action("Sair do Vigilant", key: "q") { NSApp.terminate(nil) })
+        menu.addItem(action("Sair do Sentinel", key: "q") { NSApp.terminate(nil) })
     }
 
     private func action(_ title: String, key: String = "", handler: @escaping () -> Void) -> NSMenuItem {

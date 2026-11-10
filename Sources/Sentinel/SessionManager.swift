@@ -147,7 +147,7 @@ final class SessionManager: ObservableObject {
 
     private func apply() {
         if isActive {
-            assertion.hold(keepDisplayAwake: !preferences.allowDisplaySleep, reason: "Vigilant keeping this Mac awake")
+            assertion.hold(keepDisplayAwake: !preferences.allowDisplaySleep, reason: "Sentinel keeping this Mac awake")
         } else {
             assertion.release()
         }

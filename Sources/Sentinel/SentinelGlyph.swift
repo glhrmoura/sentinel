@@ -1,6 +1,6 @@
 import AppKit
 
-enum VigilantGlyph {
+enum SentinelGlyph {
     static func image(open: Bool, size: CGFloat, lashes: Int = 5, lineWidth: CGFloat = 64) -> NSImage {
         let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
             guard let context = NSGraphicsContext.current?.cgContext else { return false }

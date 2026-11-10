@@ -1,24 +1,24 @@
 .PHONY: app icon run install clean
 
 app:
-	mkdir -p build/Vigilant.app/Contents/MacOS build/Vigilant.app/Contents/Resources
-	swiftc -O -parse-as-library -target arm64-apple-macos14.0 Sources/Vigilant/*.swift -o build/vigilant-arm64
-	swiftc -O -parse-as-library -target x86_64-apple-macos14.0 Sources/Vigilant/*.swift -o build/vigilant-x86_64
-	lipo -create build/vigilant-arm64 build/vigilant-x86_64 -output build/Vigilant.app/Contents/MacOS/Vigilant
-	cp Resources/Info.plist build/Vigilant.app/Contents/Info.plist
-	cp Resources/AppIcon.icns build/Vigilant.app/Contents/Resources/AppIcon.icns
-	codesign --force --sign - build/Vigilant.app
+	mkdir -p build/Sentinel.app/Contents/MacOS build/Sentinel.app/Contents/Resources
+	swiftc -O -parse-as-library -target arm64-apple-macos14.0 Sources/Sentinel/*.swift -o build/sentinel-arm64
+	swiftc -O -parse-as-library -target x86_64-apple-macos14.0 Sources/Sentinel/*.swift -o build/sentinel-x86_64
+	lipo -create build/sentinel-arm64 build/sentinel-x86_64 -output build/Sentinel.app/Contents/MacOS/Sentinel
+	cp Resources/Info.plist build/Sentinel.app/Contents/Info.plist
+	cp Resources/AppIcon.icns build/Sentinel.app/Contents/Resources/AppIcon.icns
+	codesign --force --sign - build/Sentinel.app
 
 icon:
 	swift Tools/make-icon.swift build/AppIcon.iconset Resources/logo.png
 	iconutil -c icns build/AppIcon.iconset -o Resources/AppIcon.icns
 
 run: app
-	open build/Vigilant.app
+	open build/Sentinel.app
 
 install: app
-	rm -rf /Applications/Vigilant.app
-	cp -R build/Vigilant.app /Applications/Vigilant.app
+	rm -rf /Applications/Sentinel.app
+	cp -R build/Sentinel.app /Applications/Sentinel.app
 
 clean:
 	rm -rf build

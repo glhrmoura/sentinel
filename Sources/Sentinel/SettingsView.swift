@@ -105,7 +105,7 @@ private struct SettingIcon: View {
     let symbol: String
     let color: Color
 
-    static let vigilantEye = "vigilant.eye"
+    static let sentinelEye = "sentinel.eye"
 
     var body: some View {
         glyph
@@ -119,8 +119,8 @@ private struct SettingIcon: View {
 
     @ViewBuilder
     private var glyph: some View {
-        if symbol == Self.vigilantEye {
-            Image(nsImage: VigilantGlyph.image(open: true, size: 18))
+        if symbol == Self.sentinelEye {
+            Image(nsImage: SentinelGlyph.image(open: true, size: 18))
                 .renderingMode(.template)
                 .resizable()
                 .frame(width: 18, height: 18)
@@ -167,7 +167,7 @@ private struct GeneralSettings: View {
                         symbol: "power",
                         color: .gray,
                         title: "Abrir junto com o Mac",
-                        subtitle: "O Vigilant inicia sozinho quando você faz login."
+                        subtitle: "O Sentinel inicia sozinho quando você faz login."
                     )
                 }
                 .onChange(of: launchAtLogin) { _, enabled in updateLoginItem(enabled) }
@@ -176,10 +176,10 @@ private struct GeneralSettings: View {
                 }
                 Toggle(isOn: $preferences.startSessionAtLaunch) {
                     SettingLabel(
-                        symbol: SettingIcon.vigilantEye,
+                        symbol: SettingIcon.sentinelEye,
                         color: .green,
                         title: "Manter acordado ao abrir",
-                        subtitle: "Ativa o Vigilant assim que o app é aberto."
+                        subtitle: "Ativa o Sentinel assim que o app é aberto."
                     )
                 }
             }

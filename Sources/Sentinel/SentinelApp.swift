@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct VigilantApp: App {
+struct SentinelApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
@@ -38,7 +38,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
             window.contentViewController = controller
             window.setContentSize(Self.settingsSize)
-            window.title = "Ajustes do Vigilant"
+            window.title = "Ajustes do Sentinel"
             window.isReleasedWhenClosed = false
             settingsWindow = window
         }
