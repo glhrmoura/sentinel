@@ -53,8 +53,8 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     private func render(active: Bool) {
-        let image = VigilantGlyph.image(open: active, size: 18)
-        image.accessibilityDescription = "Vigilant"
+        let image = NSImage(systemSymbolName: active ? "eye" : "eye.slash", accessibilityDescription: "Vigilant")
+        image?.isTemplate = true
         statusItem.button?.image = image
         primaryItem.title = active ? "Deixar o Mac dormir" : "Manter acordado"
     }
