@@ -4,6 +4,7 @@ LSREGISTER = /System/Library/Frameworks/CoreServices.framework/Frameworks/Launch
 
 app:
 	mkdir -p build/Sentinel.app/Contents/MacOS build/Sentinel.app/Contents/Resources
+	touch build/.metadata_never_index
 	swiftc -O -parse-as-library -target arm64-apple-macos14.0 Sources/Sentinel/*.swift -o build/sentinel-arm64
 	swiftc -O -parse-as-library -target x86_64-apple-macos14.0 Sources/Sentinel/*.swift -o build/sentinel-x86_64
 	lipo -create build/sentinel-arm64 build/sentinel-x86_64 -output build/Sentinel.app/Contents/MacOS/Sentinel
