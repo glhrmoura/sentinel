@@ -21,10 +21,13 @@ struct StatusHeaderView: View {
                 set: { _ in session.toggleIndefinite() }
             ))
             .toggleStyle(GreenSwitchStyle())
+            .allowsHitTesting(false)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
         .frame(width: 270, alignment: .leading)
+        .contentShape(Rectangle())
+        .onTapGesture { session.toggleIndefinite() }
     }
 }
 
@@ -39,8 +42,6 @@ struct GreenSwitchStyle: ToggleStyle {
                 .padding(2)
         }
         .frame(width: 38, height: 22)
-        .contentShape(Capsule())
-        .onTapGesture { configuration.isOn.toggle() }
         .animation(.spring(response: 0.25, dampingFraction: 0.8), value: configuration.isOn)
     }
 }
