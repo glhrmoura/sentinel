@@ -10,7 +10,8 @@ app:
 	codesign --force --sign - build/Sentinel.app
 
 icon:
-	swift Tools/make-icon.swift build/AppIcon.iconset Resources/logo.png
+	rm -rf build/AppIcon.iconset
+	swift Tools/make-icon.swift Resources/logo.png build/AppIcon.iconset
 	iconutil -c icns build/AppIcon.iconset -o Resources/AppIcon.icns
 
 run: app
