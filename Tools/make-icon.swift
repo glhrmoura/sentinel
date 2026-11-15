@@ -47,7 +47,7 @@ func render() -> CGImage {
     let context = makeContext()
     let center = CGPoint(x: side / 2, y: side / 2)
 
-    context.setFillColor(color(0x1C1C1E))
+    context.setFillColor(color(0xF2761D))
     context.fill(CGRect(x: 0, y: 0, width: side, height: side))
 
     let rounding: CGFloat = 64
