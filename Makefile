@@ -14,7 +14,7 @@ app:
 	codesign --force --sign - build/Sentinel.app
 
 icon:
-	swift Tools/make-icon.swift Resources/logo.png Resources/AppIcon.icon/Assets/art.png
+	swift Tools/make-icon.swift Resources/AppIcon.icon/Assets/art.png Resources/logo.png
 	rm -rf build/icon && mkdir -p build/icon
 	xcrun actool Resources/AppIcon.icon --compile build/icon --platform macosx --minimum-deployment-target 14.0 --app-icon AppIcon --output-partial-info-plist build/icon/partial.plist
 	cp build/icon/AppIcon.icns Resources/AppIcon.icns
