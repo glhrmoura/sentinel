@@ -1,106 +1,90 @@
 import AppKit
-import CoreImage
 
-let canvasSize = 1024
-let logoScale: CGFloat = 1.02
-let maskInset: CGFloat = 70
-let maskRadius: CGFloat = 230
-let maskFeather: CGFloat = 28
-let topColor = CGColor(srgbRed: 0.150, green: 0.150, blue: 0.162, alpha: 1)
-let bottomColor = CGColor(srgbRed: 0.016, green: 0.020, blue: 0.035, alpha: 1)
+let side: CGFloat = 1024
+let space = CGColorSpace(name: CGColorSpace.sRGB)!
 
-func loadSource(_ path: String) -> CGImage {
-    guard
-        let image = NSImage(contentsOfFile: path),
-        let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil)
-    else {
-        fatalError("Unable to load image at \(path)")
-    }
-    return cgImage
+func color(_ hex: UInt32, _ alpha: CGFloat = 1) -> CGColor {
+    CGColor(srgbRed: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: alpha)
 }
 
-func makeContext(_ side: Int) -> CGContext {
-    CGContext(
-        data: nil,
-        width: side,
-        height: side,
-        bitsPerComponent: 8,
-        bytesPerRow: 0,
-        space: CGColorSpace(name: CGColorSpace.sRGB)!,
-        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-    )!
-}
-
-func featheredMask(side: Int, rect: CGRect) -> CGImage {
-    let context = makeContext(side)
-    context.setFillColor(CGColor(gray: 0, alpha: 1))
-    context.fill(CGRect(x: 0, y: 0, width: side, height: side))
-    context.addPath(CGPath(roundedRect: rect, cornerWidth: maskRadius, cornerHeight: maskRadius, transform: nil))
-    context.setFillColor(CGColor(gray: 1, alpha: 1))
-    context.fillPath()
-    let extent = CGRect(x: 0, y: 0, width: side, height: side)
-    let blurred = CIImage(cgImage: context.makeImage()!)
-        .clampedToExtent()
-        .applyingGaussianBlur(sigma: Double(maskFeather))
-        .cropped(to: extent)
-    let ciContext = CIContext(options: [.workingColorSpace: CGColorSpace(name: CGColorSpace.sRGB)!])
-    let rendered = ciContext.createCGImage(blurred, from: extent)!
-    return CGImage(
-        maskWidth: side,
-        height: side,
-        bitsPerComponent: 8,
-        bitsPerPixel: 8,
-        bytesPerRow: side,
-        provider: grayProvider(rendered, side: side),
-        decode: nil,
-        shouldInterpolate: true
-    )!
-}
-
-func grayProvider(_ image: CGImage, side: Int) -> CGDataProvider {
+func makeContext() -> CGContext {
     let context = CGContext(
         data: nil,
-        width: side,
-        height: side,
+        width: Int(side),
+        height: Int(side),
         bitsPerComponent: 8,
-        bytesPerRow: side,
-        space: CGColorSpaceCreateDeviceGray(),
-        bitmapInfo: CGImageAlphaInfo.none.rawValue
+        bytesPerRow: 0,
+        space: space,
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
     )!
-    context.draw(image, in: CGRect(x: 0, y: 0, width: side, height: side))
-    var bytes = [UInt8](UnsafeBufferPointer(start: context.data!.assumingMemoryBound(to: UInt8.self), count: side * side))
-    for index in bytes.indices {
-        bytes[index] = 255 - bytes[index]
-    }
-    return CGDataProvider(data: Data(bytes) as CFData)!
-}
-
-func render(_ source: CGImage) -> Data {
-    let side = CGFloat(canvasSize)
-    let context = makeContext(canvasSize)
     context.interpolationQuality = .high
-
-    let gradient = CGGradient(
-        colorsSpace: CGColorSpace(name: CGColorSpace.sRGB),
-        colors: [topColor, bottomColor] as CFArray,
-        locations: [0, 1]
-    )!
-    context.drawLinearGradient(gradient, start: CGPoint(x: 0, y: side), end: CGPoint(x: 0, y: 0), options: [])
-
-    let scale = side * logoScale / CGFloat(max(source.width, source.height))
-    let width = CGFloat(source.width) * scale
-    let height = CGFloat(source.height) * scale
-    let logoRect = CGRect(x: (side - width) / 2, y: (side - height) / 2, width: width, height: height)
-    let mask = featheredMask(side: canvasSize, rect: logoRect.insetBy(dx: maskInset, dy: maskInset))
-
-    context.saveGState()
-    context.clip(to: CGRect(x: 0, y: 0, width: side, height: side), mask: mask)
-    context.draw(source, in: logoRect)
-    context.restoreGState()
-
-    let rep = NSBitmapImageRep(cgImage: context.makeImage()!)
-    return rep.representation(using: .png, properties: [:])!
+    return context
 }
 
-let source = loadSource(CommandLine.arguments[1])
-try render(source).write(to: URL(fileURLWithPath: CommandLine.arguments[2]))
+func lensPath(center: CGPoint, halfWidth: CGFloat, halfHeight: CGFloat) -> CGPath {
+    let radius = (halfWidth * halfWidth + halfHeight * halfHeight) / (2 * halfHeight)
+    let angle = asin(halfWidth / radius)
+    let path = CGMutablePath()
+    path.addArc(
+        center: CGPoint(x: center.x, y: center.y + halfHeight - radius),
+        radius: radius,
+        startAngle: .pi / 2 + angle,
+        endAngle: .pi / 2 - angle,
+        clockwise: true
+    )
+    path.addArc(
+        center: CGPoint(x: center.x, y: center.y - halfHeight + radius),
+        radius: radius,
+        startAngle: -.pi / 2 + angle,
+        endAngle: -.pi / 2 - angle,
+        clockwise: true
+    )
+    path.closeSubpath()
+    return path
+}
+
+func render() -> CGImage {
+    let context = makeContext()
+    let center = CGPoint(x: side / 2, y: side / 2)
+
+    context.setFillColor(color(0x1C1C1E))
+    context.fill(CGRect(x: 0, y: 0, width: side, height: side))
+
+    let rounding: CGFloat = 64
+    let eye = lensPath(center: center, halfWidth: 384 - rounding / 2, halfHeight: 236 - rounding / 2)
+    context.setAlpha(0.7)
+    context.beginTransparencyLayer(auxiliaryInfo: nil)
+    context.setFillColor(color(0xF5F5F7))
+    context.setStrokeColor(color(0xF5F5F7))
+    context.setLineWidth(rounding)
+    context.setLineJoin(.round)
+    context.addPath(eye)
+    context.drawPath(using: .fillStroke)
+    context.endTransparencyLayer()
+    context.setAlpha(1)
+
+    let pupilRadius: CGFloat = 148
+    context.setFillColor(color(0xF5F5F7))
+    context.fillEllipse(in: CGRect(x: center.x - pupilRadius, y: center.y - pupilRadius, width: pupilRadius * 2, height: pupilRadius * 2))
+
+    return context.makeImage()!
+}
+
+func roundedLogo(from art: CGImage) -> CGImage {
+    let context = makeContext()
+    let rect = CGRect(x: 0, y: 0, width: side, height: side)
+    let radius = side * 0.2237
+    context.addPath(CGPath(roundedRect: rect, cornerWidth: radius, cornerHeight: radius, transform: nil))
+    context.clip()
+    context.draw(art, in: rect)
+    return context.makeImage()!
+}
+
+func writePNG(_ image: CGImage, to path: String) throws {
+    let rep = NSBitmapImageRep(cgImage: image)
+    try rep.representation(using: .png, properties: [:])!.write(to: URL(fileURLWithPath: path))
+}
+
+let art = render()
+try writePNG(art, to: CommandLine.arguments[1])
+try writePNG(roundedLogo(from: art), to: CommandLine.arguments[2])
